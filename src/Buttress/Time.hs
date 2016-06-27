@@ -52,10 +52,14 @@ years = Years
 year = years
 
 instance (b ~ DiffTime) => Num (TimeConvert -> b) where
-  fromInteger i Years = secondsToDiffTime (i * secondsInAYear)
+  fromInteger i Years =
+    secondsToDiffTime (i * secondsInAYear)
 
 instance (b ~ DiffTime) => Fractional (TimeConvert -> b) where
-  fromRational r Years = secondsToDiffTime (round (r * (toRational secondsInAYear)))
+  -- rounding to the nearest second, which doesn't seem
+  -- unreasonable when dealing with denominations of a year
+  fromRational r Years =
+    secondsToDiffTime (round (r * (toRational secondsInAYear)))
 
 -- instance Num (TimeConvert -> DiffTime) where
 --   fromInteger i Years = years i

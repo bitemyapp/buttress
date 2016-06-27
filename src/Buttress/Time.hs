@@ -51,6 +51,10 @@ data TimeConvert =
 years = Years
 year = years
 
+-- https://mail.haskell.org/pipermail/haskell-cafe/2006-August/017392.html
+-- http://okmij.org/ftp/Haskell/typecast.html
+-- https://artyom.me/lens-over-tea-1
+
 instance (b ~ DiffTime) => Num (TimeConvert -> b) where
   fromInteger i Years =
     secondsToDiffTime (i * secondsInAYear)

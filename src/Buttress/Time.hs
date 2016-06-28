@@ -92,3 +92,6 @@ secondsInAYear = (86400 * 365) + (div 86400 4)
 -- year, years :: Integer -> DiffTime
 -- years a = secondsToDiffTime (secondsInAYear * a)
 -- year = years
+
+-- User notes:
+-- my only comment on 'time' was that API breakage made me use pre-processor directives to call different methods to parse a date, if i wanted to support more than the latest version

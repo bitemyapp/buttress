@@ -24,14 +24,59 @@ import Data.Singletons.Prelude
 import GHC.TypeLits
 import Unsafe.Coerce
 
--- type family TupleIx' (n :: Nat) (t :: *) where
--- -- type family TupleIx' (n :: Nat) (t :: *) where
---   TupleIx' 0 (a, _) = a
---   TupleIx' 1 (_, b) = b
+type family TupleIx' (n :: Nat) (t :: *) where
+  TupleIx' 0 (a, _) = a
+  TupleIx' 1 (_, b) = b
 
---   TupleIx' 0 (a, _, _) = a
---   TupleIx' 1 (_, b, _) = b
---   TupleIx' 2 (_, _, c) = c
+  TupleIx' 0 (a, _, _) = a
+  TupleIx' 1 (_, b, _) = b
+  TupleIx' 2 (_, _, c) = c
+
+class KnownNat n => TupleIx a n where
+  tix :: a -> Sing n -> TupleIx' n a
+
+instance TupleIx (a, b) 0 where
+  tix (a, _) _ = a
+
+instance TupleIx (a, b) 1 where
+  tix (_, b) _ = b
+
+instance TupleIx (a, b, c) 0 where
+  tix (a, _, _) _ = a
+
+instance TupleIx (a, b, c) 1 where
+  tix (_, b, _) _ = b
+
+instance TupleIx (a, b, c) 2 where
+  tix (_, _, c) _ = c
+
+(#.) :: forall t n' k .
+        (DemoteRep k ~ Integer) =>
+        t -> DemoteRep k -> TupleIx' n' t
+(#.) t n =
+  case toSing n of
+    SomeSing (sb :: Sing k) ->
+      tix @t @k t
+
+-- (#.) :: forall a b n' x k
+--       . (DemoteRep k ~ Integer) =>
+--       (a, b) -> DemoteRep k -> TupleIx' n' (a, b)
+-- (#.) :: forall a b n' .
+--         SingI (N t) =>
+-- (#.) :: forall t n' .
+--         t -> Integer -> TupleIx' n' t
+-- (#.) :: forall t n' .
+--         t -> Integer -> TupleIx' n' t
+      -- tix @t @a t
+      -- let _ = t :: forall a b . (a, b)
+      -- in tix t :: TupleIx' num (a, b)
+      -- tix @_ @num t :: TupleIx' num t2
+      -- tix t :: TupleIx' num t2 r => r
+      -- let a :: a
+      --     a = sb
+      -- in undefined -- tix t sb
+
+-- type family TupleIx' (n :: Nat) (t :: *) where
 -- type family TupleIx' (n :: k) (t :: *)
 -- newtype C a b (n :: k) = C a deriving Show
 
@@ -115,29 +160,11 @@ import Unsafe.Coerce
 --   (#.) :: a -> Proxy n -> TupleIx' n a
 
 -- class KnownNat n => TupleIx a n where
---   tix :: a -> Sing n -> TupleIx' n a
-
--- instance TupleIx (a, b) 0 where
---   tix (a, _) _ = a
-
--- instance TupleIx (a, b) 1 where
---   tix (_, b) _ = b
-
--- instance TupleIx (a, b, c) 0 where
---   tix (a, _, _) _ = a
-
--- instance TupleIx (a, b, c) 1 where
---   tix (_, b, _) _ = b
-
--- instance TupleIx (a, b, c) 2 where
---   tix (_, _, c) _ = c
-
--- class KnownNat n => TupleIx a n where
-class TupleIx a n where
+-- class TupleIx a n where
   -- type TupleIx' n a = r | r -> n a
   -- tix :: (TupleIx' n a ~ x) => a -> x
-  data TupleIx' n a
-  tix :: a -> TupleIx' n a
+  -- data TupleIx' n a
+  -- tix :: a -> TupleIx' n a
 
 -- instance Rec a ~ reca => Sel a s (b -> (c, reca))
 
@@ -147,15 +174,15 @@ class TupleIx a n where
 -- instance TupleIx (a, b) 1 where
 --   tix (_, b) = b
 
-instance TupleIx (a, b) 0 where
+-- instance TupleIx (a, b) 0 where
   -- type TupleIx' 0 (a, b) = C a b 0
-  data TupleIx' 0 (a, b) = Tix2'0 a
-  tix (a, _) = Tix2'0 a
+  -- data TupleIx' 0 (a, b) = Tix2'0 a
+  -- tix (a, _) = Tix2'0 a
 
-instance TupleIx (a, b) 1 where
+-- instance TupleIx (a, b) 1 where
   -- type TupleIx' 1 (a, b) = C b a 1
-  data TupleIx' 1 (a, b) = Tix2'1 b
-  tix (_, b) = Tix2'1 b
+  -- data TupleIx' 1 (a, b) = Tix2'1 b
+  -- tix (_, b) = Tix2'1 b
 
 -- class KnownNat n => TupleIx a n where
 --   tix :: a -> TupleIx' n a
@@ -183,31 +210,6 @@ instance TupleIx (a, b) 1 where
 
 -- instance TupleIx (a, b) 1 where
 --   tix (_, b) = b
-
--- (#.) :: forall a b n' x k
---       . (DemoteRep k ~ Integer) =>
---       (a, b) -> DemoteRep k -> TupleIx' n' (a, b)
--- (#.) :: forall a b n' .
---         SingI (N t) =>
--- (#.) :: forall t n' .
---         t -> Integer -> TupleIx' n' t
--- (#.) :: forall t n' .
---         t -> Integer -> TupleIx' n' t
-(#.) :: forall t n' k .
-        (DemoteRep k ~ Integer) =>
-        t -> DemoteRep k -> TupleIx' n' t
-(#.) t n =
-  case toSing n of
-    SomeSing (sb :: Sing k) ->
-      tix @t @k t
-      -- tix @t @a t
-      -- let _ = t :: forall a b . (a, b)
-      -- in tix t :: TupleIx' num (a, b)
-      -- tix @_ @num t :: TupleIx' num t2
-      -- tix t :: TupleIx' num t2 r => r
-      -- let a :: a
-      --     a = sb
-      -- in undefined -- tix t sb
 
 -- liftNat :: (KnownNat n) => Integer -> Proxy n
 -- liftNat i = Proxy :: Proxy 'i
